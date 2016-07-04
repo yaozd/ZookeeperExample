@@ -1,9 +1,9 @@
 ﻿using System;
 using ZooKeeperNet;
 
-namespace AppClient
+namespace AppServer
 {
-    public class Singleton:IDisposable
+    public class Singleton
     {
         private static readonly Lazy<Singleton> lazy =
           new Lazy<Singleton>(() => new Singleton());
@@ -28,8 +28,18 @@ namespace AppClient
 
         public string GroupNode()
         {
-            return Sgroup;
+            return _sgroup;
         }
+
+        public string SubNode()
+        {
+            return _subnode;
+        }
+        public string Address()
+        {
+            return _address;
+        }
+
 
         private void InitZookeeperClients()
         {
@@ -41,18 +51,25 @@ namespace AppClient
         }
         private ZooKeeper LoadClient()
         {
-            return  new ZooKeeper(Connectstring, new TimeSpan(0, 0, 0, 50000), new WatcherForInitZk());
+            return new ZooKeeper(_connectstring, new TimeSpan(0, 0, 0, 500), new WatcherForInitZk());
         }
 
-        private string Connectstring
+        private string _connectstring
         {
             get { return "127.0.0.1:2181"; }
         }
-        private string Sgroup
+        private  string _sgroup
         {
             get { return "sgroup"; }
         }
-
+        private  string _subnode
+        {
+            get { return "sub"; }
+        }
+        private string _address
+        {
+            get { return "xsss-aaa"; }
+        }
         public void Dispose()
         {
             if (_zk != null)

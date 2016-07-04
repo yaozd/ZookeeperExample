@@ -20,7 +20,7 @@ namespace AppClient
                 Console.WriteLine("-------------------------------");
                 Console.ForegroundColor = ConsoleColor.White;
             }
-            if (@event.State == KeeperState.Disconnected)
+            if (@event.State == KeeperState.Disconnected||@event.State==KeeperState.Expired)
             {
                 //TODO 客户端与ZK服务器断开连接的情况
                 //清空--服务的服务器列表

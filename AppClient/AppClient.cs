@@ -6,7 +6,7 @@ using ZooKeeperNet;
 
 namespace AppClient
 {
-    public class AppClient
+    public class AppClient : IDisposable
     {
         //
         private readonly Stat _stat = new Stat();
@@ -54,7 +54,7 @@ namespace AppClient
             }
         }
 
-        private static IEnumerable<string> GetChildren(ZooKeeper zk, string groupNode)
+        private  IEnumerable<string> GetChildren(ZooKeeper zk, string groupNode)
         {
             while (true)
             {
@@ -62,9 +62,15 @@ namespace AppClient
                 {
                     return zk.GetChildren("/" + groupNode, true);
                 }
-                    //ConnectionLossException-Sleep 1秒
+                //ConnectionLossException-Sleep 1秒
                 catch (KeeperException.ConnectionLossException)
                 {
+                    Thread.Sleep(1000);
+                }
+                catch (KeeperException.SessionExpiredException)
+                {
+                    Dispose();
+                    zk = Singleton.Instance.ZkClient();
                     Thread.Sleep(1000);
                 }
                 catch (Exception)
@@ -89,6 +95,12 @@ namespace AppClient
                 {
                     Thread.Sleep(1000);
                 }
+                catch (KeeperException.SessionExpiredException)
+                {
+                    Dispose();
+                    zk = Singleton.Instance.ZkClient();
+                    Thread.Sleep(1000);
+                }
                 //跳过NoNodeException的异常情况-相当子节点不存在的情况
                 catch (KeeperException.NoNodeException)
                 {
@@ -107,6 +119,9 @@ namespace AppClient
         {
             Console.WriteLine(format, arg);
         }
-         
+        public void Dispose()
+        {
+            Singleton.Instance.Dispose();
+        }
     }
 }

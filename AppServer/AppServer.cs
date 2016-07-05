@@ -149,7 +149,7 @@ namespace AppServer
         }
         private  void CreateSubNode(string address, string groupNode, string subNode)
         {
-            Console.WriteLine(address);
+            Console.WriteLine("CreateSubNode:{0}", address);
             while (true)
             {
                 try

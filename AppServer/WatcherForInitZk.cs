@@ -17,7 +17,7 @@ namespace AppServer
                 //清空--服务的服务器列表
                 Console.WriteLine("AppServer-State-Disconnected-or-Expired");
                 //不管的将本地服务写入到ZK服务器端，无限循环直到注册成功
-                //2.注册服务
+                //2.重新注册服务
                 var address = Singleton.Instance.Address();
                 AppServer.Instance.Register(address+ @event.State);
             }

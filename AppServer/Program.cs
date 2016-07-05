@@ -19,19 +19,23 @@ namespace AppServer
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            while (true)
-            {
-                var address = "xxx=192.168.0.2";
-                address = Singleton.Instance.Address();
-                AppServer.Instance.Register(address);
-                var current = Interlocked.Increment(ref Count);
-                Console.WriteLine("{0}-Register-{1}", current, DateTime.Now);
-                Thread.Sleep(5*1000);
-                AppServer.Instance.Dispose();
-                Thread.Sleep(1000);
-                Console.WriteLine("{0}-Dispose-{1}", current, DateTime.Now);
+            var address = "xxx=192.168.0.2";
+            address = Singleton.Instance.Address();
+            AppServer.Instance.Register(address,true);
+            //AppServer.Instance.Dispose();
+            //while (true)
+            //{
+            //    var address = "xxx=192.168.0.2";
+            //    address = Singleton.Instance.Address();
+            //    AppServer.Instance.Register(address);
+            //    var current = Interlocked.Increment(ref Count);
+            //    Console.WriteLine("{0}-Register-{1}", current, DateTime.Now);
+            //    Thread.Sleep(5*1000);
+            //    AppServer.Instance.Dispose();
+            //    Thread.Sleep(1000);
+            //    Console.WriteLine("{0}-Dispose-{1}", current, DateTime.Now);
 
-            }
+            //}
 
             Console.ReadLine();
         }

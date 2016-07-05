@@ -11,6 +11,8 @@ namespace AppServer
     {
         public void Process(WatchedEvent @event)
         {
+            Console.WriteLine("AppServer-WatcherForInitZk State:{0}", @event.State);
+            Console.WriteLine("AppServer-WatcherForInitZk Path:{0}", @event.Path);
             if (@event.State == KeeperState.Disconnected || @event.State == KeeperState.Expired)
             {
                 //TODO 客户端与ZK服务器断开连接的情况

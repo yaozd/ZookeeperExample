@@ -50,7 +50,7 @@ namespace AppClient
             _serverList = newServerList;
             foreach (var server in _serverList)
             {
-                Display("server list updated: " + server);
+                Display("------------------------server list updated: " + server);
             }
         }
 

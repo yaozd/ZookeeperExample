@@ -9,6 +9,8 @@ namespace AppServer
 {
     class Program
     {
+        //原子计数
+        public static int Count;
         /// <summary>
         /// zookeeper.discovery.register
         /// 客户端-读取服务
@@ -22,8 +24,13 @@ namespace AppServer
                 var address = "xxx=192.168.0.2";
                 address = Singleton.Instance.Address();
                 AppServer.Instance.Register(address);
-                Thread.Sleep(10*1000);
-                //AppServer.Instance.Dispose();
+                var current = Interlocked.Increment(ref Count);
+                Console.WriteLine("{0}-Register-{1}", current, DateTime.Now);
+                Thread.Sleep(5*1000);
+                AppServer.Instance.Dispose();
+                Thread.Sleep(1000);
+                Console.WriteLine("{0}-Dispose-{1}", current, DateTime.Now);
+
             }
 
             Console.ReadLine();

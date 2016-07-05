@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using ZooKeeperNet;
 
 namespace AppServer
@@ -51,7 +52,7 @@ namespace AppServer
         }
         private ZooKeeper LoadClient()
         {
-            return new ZooKeeper(_connectstring, new TimeSpan(0, 0, 0, 500), new WatcherForInitZk());
+            return new ZooKeeper(_connectstring, new TimeSpan(0, 0, 0, 5), new WatcherForInitZk());
         }
 
         private string _connectstring

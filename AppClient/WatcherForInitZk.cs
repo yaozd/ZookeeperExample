@@ -3,6 +3,9 @@ using ZooKeeperNet;
 
 namespace AppClient
 {
+    /// <summary>
+    /// Watcher-AppClient
+    /// </summary>
     public class WatcherForInitZk : IWatcher
     {
         public void Process(WatchedEvent @event)

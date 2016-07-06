@@ -23,84 +23,59 @@ namespace AppServer
         }
 
         private ZooKeeper _zk = Singleton.Instance.ZkClient();
-        //上一个注册节点
-        private string  preSubNode ;
+        /// <summary>
+        /// 当前服务的注册节点
+        /// </summary>
+        private string  _currentSubNode ;
 
-        public void Register(string address,bool isInit=false)
+        public void Register(string address)
         {
             lock (LockObject)
             {
                 var groupNode = Singleton.Instance.GroupNode();
                 var subNode = Singleton.Instance.SubNode();
+                //
                 var statGroupNode = IsExistsGroupNode(groupNode);
-                if (statGroupNode == null) CreateGroupNode(groupNode);
-                if (isInit)
-                {
-                    Console.WriteLine("节点{0}：初始化", address);
-                    CreateSubNode(address, groupNode, subNode);
-                    return;
-                }
-                var statSubNode = IsExistSubNode(groupNode, address);             
+                if (!statGroupNode) CreateGroupNode(groupNode);
+                //
+                var statSubNode = IsExistSubNode();             
                 if (!statSubNode) CreateSubNode(address, groupNode, subNode);
                 if (statSubNode)
                 {
-                    Console.WriteLine("节点{0}：已存在",address);
+                    Display("节点{0}：已存在",address);
                 }
             }
 
         }
-
-        private bool IsExistSubNode(string groupNode,string address)
+        /// <summary>
+        /// 判断groupNode节点是否存在
+        /// </summary>
+        /// <param name="groupNode"></param>
+        /// <returns></returns>
+        private bool IsExistsGroupNode(string groupNode)
         {
-            // 获取并监听groupNode的子节点变化
-            // watch参数为true, 表示监听子节点变化事件. 
-            // 每次都需要重新注册监听, 因为一次注册, 只能监听一次事件, 如果还想继续保持监听, 必须重新注册
-            var subList = GetChildren(groupNode);
-            foreach (var subNode in subList)
-            {
-                // 获取每个子节点下关联的server地址
-                byte[] data = GetSubNodeData(groupNode, subNode);
-                //跳过NoNodeException的异常情况
-                if (data == null) continue;
-                string val = System.Text.Encoding.Default.GetString(data);
-                //如果节点已经注册，就不再重新注册
-                if (val.Equals(address)) return true;
-            }
-            return false;
+            var stat = IsExistsNode("/" + groupNode, false);
+            if (stat == null) return false;
+            return true;
         }
-        private IEnumerable<string> GetChildren(string groupNode)
+        /// <summary>
+        /// 判断SubNode节点是否存在
+        /// </summary>
+        /// <returns></returns>
+        private bool IsExistSubNode()
+        {
+            if (string.IsNullOrWhiteSpace(_currentSubNode)) return false;
+            var stat = IsExistsNode(_currentSubNode, false);
+            if (stat == null) return false;
+            return true;
+        }
+        private Stat IsExistsNode(string path, bool watch)
         {
             while (true)
             {
                 try
                 {
-                    // watch参数为true, 表示监听子节点变化事件.
-                    // 每次都需要重新注册监听, 因为一次注册, 只能监听一次事件, 如果还想继续保持监听, 必须重新注册
-                    //--服务器端主要是注册服务，所以不需要监听变化--false
-                    return Execute(() => _zk.GetChildren("/" + groupNode, false));
-                }             
-                catch (Exception)
-                {
-                    //TODO 记录错误日志，但不抛出异常
-                    //System.TimeoutException
-                    //The request     / sgroup / sub    xsss - aaaExpired            world anyone     timed out while waiting for a response from the server.
-                    throw;
-                }
-            }
-        }
-        private byte[] GetSubNodeData(string groupNode, string subNode)
-        {
-            while (true)
-            {
-                try
-                {
-                    return Execute(() => _zk.GetData("/" + groupNode + "/" + subNode, false, null));
-                }              
-                //节点不存在
-                //跳过NoNodeException的异常情况-相当子节点不存在的情况
-                catch (KeeperException.NoNodeException)
-                {
-                    return null;
+                    return Execute(() => _zk.Exists(path, watch));
                 }
                 catch (Exception)
                 {
@@ -109,17 +84,16 @@ namespace AppServer
                     //The request     / sgroup / sub    xsss - aaaExpired            world anyone     timed out while waiting for a response from the server.
                     throw;
                 }
-
             }
         }
         private  void CreateSubNode(string address, string groupNode, string subNode)
         {
-            Console.WriteLine("CreateSubNode:{0}", address);
+            Display("CreateSubNode:{0}", address);
             while (true)
             {
                 try
                 {
-                    Execute(() =>_zk.Create("/" + groupNode + "/" + subNode, address.GetBytes(), Ids.OPEN_ACL_UNSAFE,CreateMode.EphemeralSequential) );
+                    _currentSubNode = Execute(() =>_zk.Create("/" + groupNode + "/" + subNode, address.GetBytes(), Ids.OPEN_ACL_UNSAFE,CreateMode.EphemeralSequential) );
                     //注册完成后--退出
                     return;
                 }              
@@ -133,25 +107,6 @@ namespace AppServer
             }
 
         }
-
-        private  Stat IsExistsGroupNode( string groupNode)
-        {
-            while (true)
-            {
-                try
-                {
-                    return Execute(() => _zk.Exists("/" + groupNode, true));               
-                }             
-                catch (Exception)
-                {
-                    //TODO 记录错误日志，但不抛出异常
-                    //System.TimeoutException
-                    //The request     / sgroup / sub    xsss - aaaExpired            world anyone     timed out while waiting for a response from the server.
-                    throw;
-                }
-            }
-        }
-
         private  void CreateGroupNode( string groupNode)
         {
             while (true)
@@ -209,7 +164,6 @@ namespace AppServer
                 }
             }           
         }
-
         private void Execute(Action action)
         {
             while (true)
@@ -243,7 +197,10 @@ namespace AppServer
                 }
             }
         }
-
+        private void Display(string format, params object[] arg)
+        {
+            Console.WriteLine(format, arg);
+        }
         public void Dispose()
         {
             Singleton.Instance.Dispose();

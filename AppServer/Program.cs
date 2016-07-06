@@ -21,7 +21,7 @@ namespace AppServer
         {
             Console.WriteLine("Zookeeper AppServer Test Go-{0:yyyy-M-dd:hh-mm-ss}",DateTime.Now);
             var address = Singleton.Instance.Address();
-            AppServer.Instance.Register(address,true);
+            AppServer.Instance.Register(address);
             //AppServer.Instance.Dispose();
             //while (true)
             //{

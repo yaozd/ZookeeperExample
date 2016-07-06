@@ -23,3 +23,8 @@ ZookeeperExample-服务的注册与发现的小例子：客户端-读取服务�
     > TimeoutException
     
     > Exception--未知异常
+
+* 参考文档
+
+    >zookeeper watch参照表谭志宇
+    >http://www.cnblogs.com/chengxin1982/p/3997490.html

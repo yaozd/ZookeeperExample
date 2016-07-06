@@ -71,34 +71,13 @@ namespace AppServer
                     // watch参数为true, 表示监听子节点变化事件.
                     // 每次都需要重新注册监听, 因为一次注册, 只能监听一次事件, 如果还想继续保持监听, 必须重新注册
                     //--服务器端主要是注册服务，所以不需要监听变化--false
-                    return _zk.GetChildren("/" + groupNode, false);
-                }
-                //ConnectionLossException-Sleep 1秒
-                catch (KeeperException.ConnectionLossException)
-                {
-                    Thread.Sleep(1000);
-                }
-                catch (KeeperException.SessionExpiredException)
-                {
-                    Dispose();
-                    _zk = Singleton.Instance.ZkClient();
-                    Thread.Sleep(1000);
-                }
-                catch (KeeperException.OperationTimeoutException)
-                {
-                    Dispose();
-                    _zk = Singleton.Instance.ZkClient();
-                    Thread.Sleep(1000);
-                }
-                catch (TimeoutException)
-                {
-                    Dispose();
-                    _zk = Singleton.Instance.ZkClient();
-                    Thread.Sleep(1000);
-                }
+                    return Execute(() => _zk.GetChildren("/" + groupNode, false));
+                }             
                 catch (Exception)
                 {
-
+                    //TODO 记录错误日志，但不抛出异常
+                    //System.TimeoutException
+                    //The request     / sgroup / sub    xsss - aaaExpired            world anyone     timed out while waiting for a response from the server.
                     throw;
                 }
             }
@@ -109,31 +88,9 @@ namespace AppServer
             {
                 try
                 {
-                    return _zk.GetData("/" + groupNode + "/" + subNode, false, null);
-                }
-                //ConnectionLossException-Sleep 1秒
-                catch (KeeperException.ConnectionLossException)
-                {
-                    Thread.Sleep(1000);
-                }
-                catch (KeeperException.SessionExpiredException)
-                {
-                    Dispose();
-                    _zk = Singleton.Instance.ZkClient();
-                    Thread.Sleep(1000);
-                }
-                catch (KeeperException.OperationTimeoutException)
-                {
-                    Dispose();
-                    _zk = Singleton.Instance.ZkClient();
-                    Thread.Sleep(1000);
-                }
-                catch (TimeoutException)
-                {
-                    Dispose();
-                    _zk = Singleton.Instance.ZkClient();
-                    Thread.Sleep(1000);
-                }
+                    return Execute(() => _zk.GetData("/" + groupNode + "/" + subNode, false, null));
+                }              
+                //节点不存在
                 //跳过NoNodeException的异常情况-相当子节点不存在的情况
                 catch (KeeperException.NoNodeException)
                 {
@@ -141,7 +98,9 @@ namespace AppServer
                 }
                 catch (Exception)
                 {
-
+                    //TODO 记录错误日志，但不抛出异常
+                    //System.TimeoutException
+                    //The request     / sgroup / sub    xsss - aaaExpired            world anyone     timed out while waiting for a response from the server.
                     throw;
                 }
 
@@ -154,34 +113,10 @@ namespace AppServer
             {
                 try
                 {
-                    _zk.Create("/" + groupNode + "/" + subNode, address.GetBytes(), Ids.OPEN_ACL_UNSAFE,
-                        CreateMode.EphemeralSequential);
+                    Execute(() =>_zk.Create("/" + groupNode + "/" + subNode, address.GetBytes(), Ids.OPEN_ACL_UNSAFE,CreateMode.EphemeralSequential) );
                     //注册完成后--退出
                     return;
-                }
-                    //ConnectionLossException-Sleep 1秒
-                catch (KeeperException.ConnectionLossException)
-                {
-                    Thread.Sleep(1000);
-                }
-                catch (KeeperException.SessionExpiredException)
-                {
-                    Dispose();
-                    _zk = Singleton.Instance.ZkClient();
-                    Thread.Sleep(1000);
-                }
-                catch (KeeperException.OperationTimeoutException)
-                {
-                    Dispose();
-                    _zk = Singleton.Instance.ZkClient();
-                    Thread.Sleep(1000);
-                }
-                catch (TimeoutException)
-                {
-                    Dispose();
-                    _zk = Singleton.Instance.ZkClient();
-                    Thread.Sleep(1000);
-                }
+                }              
                 catch (Exception)
                 {
                     //TODO 记录错误日志，但不抛出异常
@@ -199,31 +134,8 @@ namespace AppServer
             {
                 try
                 {
-                    return _zk.Exists("/" + groupNode,true);
-                }
-                //ConnectionLossException-Sleep 1秒
-                catch (KeeperException.ConnectionLossException)
-                {
-                    Thread.Sleep(1000);
-                }
-                catch (KeeperException.SessionExpiredException)
-                {                  
-                    Dispose();
-                    _zk = Singleton.Instance.ZkClient();
-                    Thread.Sleep(1000);
-                }
-                catch (KeeperException.OperationTimeoutException)
-                {
-                    Dispose();
-                    _zk = Singleton.Instance.ZkClient();
-                    Thread.Sleep(1000);
-                }
-                catch (TimeoutException)
-                {
-                    Dispose();
-                    _zk = Singleton.Instance.ZkClient();
-                    Thread.Sleep(1000);
-                }
+                    return Execute(() => _zk.Exists("/" + groupNode, true));               
+                }             
                 catch (Exception)
                 {
                     //TODO 记录错误日志，但不抛出异常
@@ -240,8 +152,31 @@ namespace AppServer
             {
                 try
                 {
-                    _zk.Create("/" + groupNode, "XX集群父节点".GetBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.Persistent);
+                    Execute(() => _zk.Create("/" + groupNode, "XX集群父节点".GetBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.Persistent));
                     return;
+                }
+                //节点已经存在             
+                //KeeperException.NodeExistsException节点已经存在--这是一种特殊情况
+                catch (KeeperException.NodeExistsException)
+                {
+                    return;
+                }
+                catch (Exception)
+                {
+                    //TODO 记录错误日志，但不抛出异常
+                    //System.TimeoutException
+                    //The request     / sgroup / sub    xsss - aaaExpired            world anyone     timed out while waiting for a response from the server.
+                    throw;
+                }
+            }
+        }
+        private T Execute<T>(Func<T> action)
+        {
+            while (true)
+            {
+                try
+                {
+                    return action();
                 }
                 //ConnectionLossException-Sleep 1秒
                 catch (KeeperException.ConnectionLossException)
@@ -266,15 +201,39 @@ namespace AppServer
                     _zk = Singleton.Instance.ZkClient();
                     Thread.Sleep(1000);
                 }
-                //KeeperException.NodeExistsException节点存在--这是一种特殊情况
-                catch (KeeperException.NodeExistsException)
-                {
-                    return;
-                }
-                catch (Exception)
-                {
+            }           
+        }
 
-                    throw;
+        private void Execute(Action action)
+        {
+            while (true)
+            {
+                try
+                {
+                    action();
+                }
+                //ConnectionLossException-Sleep 1秒
+                catch (KeeperException.ConnectionLossException)
+                {
+                    Thread.Sleep(1000);
+                }
+                catch (KeeperException.SessionExpiredException)
+                {
+                    Dispose();
+                    _zk = Singleton.Instance.ZkClient();
+                    Thread.Sleep(1000);
+                }
+                catch (KeeperException.OperationTimeoutException)
+                {
+                    Dispose();
+                    _zk = Singleton.Instance.ZkClient();
+                    Thread.Sleep(1000);
+                }
+                catch (TimeoutException)
+                {
+                    Dispose();
+                    _zk = Singleton.Instance.ZkClient();
+                    Thread.Sleep(1000);
                 }
             }
         }

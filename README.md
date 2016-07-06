@@ -24,6 +24,10 @@ ZookeeperExample-服务的注册与发现的小例子：客户端-读取服务�
     
     > Exception--未知异常
 
+    > KeeperException.NoNodeException--节点不存在
+
+    > KeeperException.NodeExistsException--节点已经存在
+
 * 参考文档
 
     >zookeeper watch参照表谭志宇

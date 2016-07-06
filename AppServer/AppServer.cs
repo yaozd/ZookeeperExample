@@ -6,6 +6,11 @@ using ZooKeeperNet;
 
 namespace AppServer
 {
+    /// <summary>
+    /// 唯一性：
+    /// 服务注册有特点--必须是在当前集群内-有且仅有一个节点
+    /// 所有节点必须是唯一
+    /// </summary>
     public class AppServer : IDisposable
     {
         private static readonly object LockObject = new object();
@@ -18,6 +23,8 @@ namespace AppServer
         }
 
         private ZooKeeper _zk = Singleton.Instance.ZkClient();
+        //上一个注册节点
+        private string  preSubNode ;
 
         public void Register(string address,bool isInit=false)
         {
@@ -25,7 +32,6 @@ namespace AppServer
             {
                 var groupNode = Singleton.Instance.GroupNode();
                 var subNode = Singleton.Instance.SubNode();
-                var zk = Singleton.Instance.ZkClient();
                 var statGroupNode = IsExistsGroupNode(groupNode);
                 if (statGroupNode == null) CreateGroupNode(groupNode);
                 if (isInit)

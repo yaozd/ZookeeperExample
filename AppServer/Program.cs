@@ -19,9 +19,8 @@ namespace AppServer
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            Console.WriteLine("Zookeeper AppServer Test Go");
-            var address = "xxx=192.168.0.2";
-            address = Singleton.Instance.Address();
+            Console.WriteLine("Zookeeper AppServer Test Go-{0:yyyy-M-dd:hh-mm-ss}",DateTime.Now);
+            var address = Singleton.Instance.Address();
             AppServer.Instance.Register(address,true);
             //AppServer.Instance.Dispose();
             //while (true)

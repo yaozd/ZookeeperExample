@@ -52,6 +52,7 @@ namespace AppServer
         }
         private ZooKeeper LoadClient()
         {
+            //sessionTimeout--服务器端设置为5秒，这样当服务器宕机时，客户端能更快时间的发现
             return new ZooKeeper(_connectstring, new TimeSpan(0, 0, 0, 5), new WatcherForInitZk());
         }
 
@@ -69,7 +70,7 @@ namespace AppServer
         }
         private string _address
         {
-            get { return "xsss-aaa"; }
+            get { return "address-"+DateTime.Now.ToString("YYYY-MM-DD-hh-mm-ss"); }
         }
         public void Dispose()
         {

@@ -16,7 +16,7 @@ namespace AppClient
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            Console.WriteLine("Zookeeper AppClient Test Go");
+            Console.WriteLine("Zookeeper AppClient Test Go-{0:yyyy-M-dd:hh-mm-ss}", DateTime.Now);
             var serverList= AppClient.Instance.ServerList();
             foreach (var subNode in serverList)
             {
